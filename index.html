@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>세계로 가는 비행기</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard','Malgun Gothic',sans-serif;
+  background:radial-gradient(ellipse at top,#1b2a6b 0%,#0a1030 60%,#05081c 100%);
+  color:#fff;height:100vh;overflow:hidden;display:flex;flex-direction:column;user-select:none}
+@keyframes shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-9px,4px)}
+ 40%{transform:translate(8px,-5px)}60%{transform:translate(-6px,-3px)}80%{transform:translate(5px,4px)}}
+body.shake{animation:shake .4s}
+#stars,#fx{position:fixed;inset:0;pointer-events:none}
+#stars{opacity:.55;z-index:0}#fx{z-index:60}
+
+header{text-align:center;padding:8px 0 2px;z-index:2}
+h1{font-size:clamp(20px,2.8vw,38px);letter-spacing:2px;text-shadow:0 0 18px #6ea8ff,0 0 40px #2b5bd7}
+#round{font-size:clamp(12px,1.4vw,18px);color:#9fc4ff}
+
+#board{flex:1;position:relative;margin:6px 210px 6px 16px;display:grid;gap:6px;z-index:1}
+.tile{border-radius:14px;background:rgba(255,255,255,.09);border:2px solid rgba(255,255,255,.18);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:clamp(10px,1.05vw,15px);color:#cfe0ff;position:relative}
+.tile .num{position:absolute;top:3px;left:6px;font-size:10px;opacity:.3}
+.tile.country{background:linear-gradient(160deg,#ffd66b,#ff9f1c);border-color:#fff3c4;
+  color:#4a2800;font-weight:800;box-shadow:0 0 22px rgba(255,180,60,.5)}
+.tile.country .flag{font-size:clamp(19px,2.4vw,38px);line-height:1.1}
+.tile.start{background:linear-gradient(160deg,#7bffb0,#14b86a);border-color:#d6ffe8;color:#04371f;font-weight:800}
+.tile.goal{background:linear-gradient(160deg,#ff9ad5,#e0308f);color:#43002a;font-weight:800;
+  border-color:#ffd9ef;animation:glow 1.4s infinite alternate}
+@keyframes glow{from{box-shadow:0 0 14px rgba(255,80,180,.5)}to{box-shadow:0 0 40px rgba(255,120,210,.95)}}
+.tile.visited::after{content:"💛";position:absolute;bottom:2px;right:5px;font-size:14px}
+
+.token{position:absolute;width:44px;height:44px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;border:3px solid #fff;
+  box-shadow:0 4px 14px rgba(0,0,0,.55);z-index:5;
+  transition:left .3s cubic-bezier(.34,1.56,.64,1),top .3s cubic-bezier(.34,1.56,.64,1)}
+.token span{font-size:23px;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}
+.token.hop{transform:scale(1.4)}
+
+/* 우측 상단 미니 점수판 */
+#mini{position:fixed;top:8px;right:10px;width:190px;z-index:20;cursor:pointer;
+  background:rgba(10,16,48,.82);border:2px solid rgba(255,255,255,.25);border-radius:16px;padding:8px}
+#mini:hover{border-color:#7ea8ff;box-shadow:0 0 20px rgba(90,140,255,.6)}
+#mini h3{font-size:12px;color:#9fc4ff;text-align:center;margin-bottom:6px;letter-spacing:1px}
+.mrow{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:9px;margin-bottom:3px}
+.mrow .dot{width:12px;height:12px;border-radius:50%;flex:none}
+.mrow .mn{flex:1;font-size:13px;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.mrow .ms{font-size:17px;font-weight:900;color:#ffd66b}
+.mrow.lead{background:rgba(255,214,107,.16)}
+#mini .tip{text-align:center;font-size:10px;color:#7e93c9;margin-top:4px}
+
+#panel{display:flex;gap:8px;justify-content:center;padding:4px 12px 8px;flex-wrap:wrap;z-index:2}
+.card{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);
+  border-radius:16px;padding:7px 11px;min-width:146px;text-align:center}
+.card.done{opacity:.4}
+.card .tname{font-size:clamp(13px,1.4vw,18px);font-weight:800}
+.card .pos{font-size:11px;color:#a9c3ff;margin-bottom:5px}
+.ranks{display:flex;gap:4px;justify-content:center}
+.ranks button{border:none;border-radius:9px;padding:5px 8px;font-size:12px;font-weight:800;
+  cursor:pointer;background:#3d5bbf;color:#fff}
+.ranks button:hover:not(:disabled){background:#5f7ffb;transform:translateY(-2px)}
+.ranks button:disabled{background:#2a3355;color:#5f6party;color:#666;cursor:default}
+
+#tools{display:flex;gap:8px;justify-content:center;padding-bottom:8px;z-index:2}
+#tools button{border:none;border-radius:12px;padding:8px 16px;font-size:14px;font-weight:800;
+  cursor:pointer;background:rgba(255,255,255,.14);color:#fff}
+#tools button:hover{background:rgba(255,255,255,.28)}
+
+.overlay{position:fixed;inset:0;background:rgba(3,6,22,.93);z-index:50;
+  display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+.overlay.show{display:flex;animation:fade .25s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.hint{margin-top:22px;font-size:14px;color:#8fa6d8}
+
+#diceBox{font-size:clamp(90px,16vw,230px);font-weight:900;text-shadow:0 0 40px #ffd66b;line-height:1}
+#diceWho{font-size:clamp(19px,2.8vw,38px);margin-bottom:8px}
+#diceSub{font-size:clamp(15px,1.9vw,25px);color:#ffd66b;margin-top:6px}
+#cardFlag{font-size:clamp(66px,12vw,160px);line-height:1}
+#cardName{font-size:clamp(28px,4.6vw,66px);font-weight:900;margin:4px 0}
+#cardHi{font-size:clamp(24px,4.2vw,56px);color:#ffd66b;font-weight:800}
+#cardFact{font-size:clamp(15px,1.9vw,26px);color:#cfe0ff;margin-top:12px;max-width:80vw}
+#winTxt{font-size:clamp(32px,5.5vw,86px);font-weight:900;text-shadow:0 0 30px #ff7ad9,0 0 60px #ff2ea6}
+
+/* 점수 전체화면 */
+#scoreOv{background:rgba(3,6,22,.97);justify-content:flex-start;padding:18px}
+#scoreOv h2{font-size:clamp(22px,3.4vw,44px);margin-bottom:10px;text-shadow:0 0 20px #6ea8ff}
+#bigWrap{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;width:100%}
+.big{background:rgba(255,255,255,.07);border:3px solid;border-radius:22px;
+  padding:14px 16px;min-width:230px;flex:1;max-width:330px;transition:transform .15s}
+.big.pop{transform:scale(1.06)}
+.big.lead{box-shadow:0 0 34px rgba(255,214,107,.6)}
+.big .bn{font-size:clamp(19px,2.3vw,30px);font-weight:900;margin-bottom:2px}
+.big .bs{font-size:clamp(52px,8vw,110px);font-weight:900;line-height:1;color:#ffd66b;
+  text-shadow:0 0 26px rgba(255,190,60,.75)}
+.big .chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:10px}
+.big .chips button{border:none;border-radius:10px;padding:6px 9px;font-size:12px;font-weight:800;
+  cursor:pointer;background:rgba(255,255,255,.16);color:#fff}
+.big .chips button:hover{background:#5f7ffb;transform:translateY(-2px)}
+#scoreTools{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#scoreTools button{border:none;border-radius:12px;padding:9px 18px;font-size:14px;font-weight:800;
+  cursor:pointer;background:rgba(255,255,255,.14);color:#fff}
+#scoreTools button:hover{background:rgba(255,255,255,.3)}
+
+/* 팀 설정 */
+#setupOv{background:rgba(3,6,22,.98);justify-content:flex-start;padding:22px;overflow:auto}
+#setupOv h2{font-size:clamp(24px,3.6vw,46px);margin-bottom:4px;text-shadow:0 0 20px #6ea8ff}
+#setupOv p.sub{color:#9fc4ff;margin-bottom:16px;font-size:15px}
+.srow{display:flex;align-items:center;gap:8px;margin-bottom:9px;background:rgba(255,255,255,.07);
+  border:2px solid rgba(255,255,255,.16);border-radius:14px;padding:8px 10px}
+.srow .sw{width:38px;height:38px;border-radius:50%;border:3px solid #fff;cursor:pointer;flex:none}
+.srow .em{font-size:26px;cursor:pointer;background:none;border:none;width:44px}
+.srow input{flex:1;min-width:150px;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.2);
+  border-radius:10px;color:#fff;font-size:19px;font-weight:800;padding:8px 12px;font-family:inherit}
+.srow input:focus{outline:none;border-color:#7ea8ff}
+.srow .del{background:none;border:none;color:#ff7a7a;font-size:21px;cursor:pointer}
+#setupBtns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+#setupBtns button{border:none;border-radius:14px;padding:12px 26px;font-size:17px;font-weight:900;cursor:pointer}
+.bStart{background:linear-gradient(160deg,#7bffb0,#14b86a);color:#04371f}
+.bAdd{background:rgba(255,255,255,.16);color:#fff}
+.bCont{background:linear-gradient(160deg,#ffd66b,#ff9f1c);color:#4a2800}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas><canvas id="fx"></canvas>
+
+<header><h1 id="title"></h1><div id="round"></div></header>
+<div id="board"></div>
+<div id="mini"></div>
+<div id="panel"></div>
+<div id="tools">
+  <button onclick="openScore()">🏅 점수판 크게</button>
+  <button onclick="nextRound()">다음 라운드 ▶</button>
+  <button onclick="allFinish()">🎉 다같이 골인!</button>
+  <button onclick="askReset()">처음부터</button>
+</div>
+
+<div class="overlay" id="diceOv">
+  <div id="diceWho"></div><div id="diceBox">?</div><div id="diceSub"></div>
+</div>
+<div class="overlay" id="cardOv">
+  <div id="cardFlag"></div><div id="cardName"></div><div id="cardHi"></div>
+  <div id="cardFact"></div><div class="hint">아무 데나 누르면 닫혀요</div>
+</div>
+<div class="overlay" id="winOv">
+  <div style="font-size:clamp(56px,11vw,150px)">🎁</div>
+  <div id="winTxt">모두 도착!<br>선물 상자를 열어요!</div>
+  <div class="hint">아무 데나 누르면 닫혀요</div>
+</div>
+
+<div class="overlay" id="scoreOv">
+  <h2>🏅 우리 팀 점수</h2>
+  <div id="bigWrap"></div>
+  <div id="scoreTools">
+    <button onclick="undo()">↩ 되돌리기</button>
+    <button onclick="closeScore()">✕ 보드로 돌아가기</button>
+  </div>
+</div>
+
+<div class="overlay show" id="setupOv">
+  <h2>팀을 만들어요</h2>
+  <p class="sub">동그라미를 누르면 색, 이모지를 누르면 말 모양이 바뀝니다</p>
+  <div id="setupList" style="width:min(560px,92vw)"></div>
+  <div id="setupBtns">
+    <button class="bAdd" onclick="addTeam()">＋ 팀 추가</button>
+    <button class="bStart" onclick="startGame()">시작하기 ✈️</button>
+  </div>
+  <div id="contWrap"></div>
+</div>
+
+<script>
+/* ============ 여기만 고치시면 됩니다 ============ */
+const CONFIG = {
+  title:"✈️ 세계로 가는 비행기",
+  cols:8, rows:4,
+  palette:["#ff5252","#3d8bff","#ffc93c","#31c46b","#b06bff","#ff7ab8"],
+  emojis:["✈️","🚀","🚁","🛸","🎈","🐘","🦁","⛵"],
+  ranks:[
+    {label:"1등",dice:[6,6],bonus:0},
+    {label:"2등",dice:[6,3],bonus:0},
+    {label:"3등",dice:[6],bonus:1},
+    {label:"4등",dice:[3],bonus:2}
+  ],
+  scoreButtons:[
+    {label:"🏆 1등",pt:10},{label:"🥈 2등",pt:6},{label:"🥉 3등",pt:4},
+    {label:"📣 응원왕",pt:5},{label:"🙌 발표",pt:3},{label:"🧹 정리",pt:2},
+    {label:"＋1",pt:1},{label:"－1",pt:-1}
+  ],
+  countries:[
+    {tile:5, flag:"🇹🇭",name:"태국",    hi:"싸왓디 캅!",   fact:"코끼리의 나라예요. 다같이 코끼리 코!"},
+    {tile:9, flag:"🇵🇭",name:"필리핀",  hi:"쿠무스타!",    fact:"섬이 7000개! 배 타고 교회에 가요."},
+    {tile:14,flag:"🇰🇭",name:"캄보디아",hi:"쭘 리읍 쑤어!",fact:"두 손 모으고 인사해요. 같이 해봐요!"},
+    {tile:19,flag:"🇲🇳",name:"몽골",    hi:"샌 배노!",     fact:"말 타고 다니는 초원의 나라! 이랴!"},
+    {tile:24,flag:"🇮🇳",name:"인도",    hi:"나마스테!",    fact:"사람이 정말 많아요. 기도해 주세요!"},
+    {tile:29,flag:"🇰🇪",name:"케냐",    hi:"잠보!",        fact:"사자와 기린이 뛰노는 곳! 어흥~"}
+  ]
+};
+const KEY="missionBoard_v1";
+/* ============================================== */
+
+const TOTAL=CONFIG.cols*CONFIG.rows, GOAL=TOTAL-1;
+const board=document.getElementById('board'),panel=document.getElementById('panel'),
+      mini=document.getElementById('mini');
+let state=null, tiles=[], tokens=[], busy=false, history=[], draft=[];
+
+/* ---- 배경 별 ---- */
+(function(){const c=document.getElementById('stars'),x=c.getContext('2d');
+ function d(){c.width=innerWidth;c.height=innerHeight;
+  for(let i=0;i<150;i++){x.globalAlpha=Math.random()*.8+.2;x.fillStyle='#fff';
+   x.beginPath();x.arc(Math.random()*c.width,Math.random()*c.height,Math.random()*1.7,0,7);x.fill();}}
+ d();addEventListener('resize',d);})();
+
+/* ---- 소리 ---- */
+let AC;
+function beep(f,d,t='square',v=.15){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+ const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;
+ o.connect(g);g.connect(AC.destination);o.start();
+ g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.stop(AC.currentTime+d);}catch(e){}}
+function fanfare(){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.35,'triangle',.2),i*135));}
+function buzz(){[300,220].forEach((f,i)=>setTimeout(()=>beep(f,.18,'sawtooth',.12),i*130));}
+
+/* ---- 색종이 ---- */
+const fx=document.getElementById('fx'),fc=fx.getContext('2d');
+function fxsize(){fx.width=innerWidth;fx.height=innerHeight}fxsize();addEventListener('resize',fxsize);
+let parts=[];
+function burst(x,y,n=90,cols=['#ffd66b','#ff6b9d','#6bffb0','#6ba8ff','#fff']){
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=3+Math.random()*9;
+   parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-4,g:.32,
+    w:5+Math.random()*7,h:8+Math.random()*9,r:Math.random()*6,vr:(Math.random()-.5)*.4,
+    c:cols[i%cols.length],life:70+Math.random()*40});}
+}
+(function loop(){fc.clearRect(0,0,fx.width,fx.height);
+  parts=parts.filter(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.life--;
+   fc.save();fc.translate(p.x,p.y);fc.rotate(p.r);fc.fillStyle=p.c;
+   fc.globalAlpha=Math.max(0,Math.min(1,p.life/40));
+   fc.fillRect(-p.w/2,-p.h/2,p.w,p.h);fc.restore();return p.life>0&&p.y<fx.height+40});
+  requestAnimationFrame(loop);})();
+function shake(){document.body.classList.remove('shake');void document.body.offsetWidth;
+  document.body.classList.add('shake');}
+
+/* ---- 팀 설정 화면 ---- */
+function drawSetup(){
+  const L=document.getElementById('setupList');L.innerHTML='';
+  draft.forEach((t,i)=>{
+    const r=document.createElement('div');r.className='srow';
+    r.innerHTML=`<div class="sw" style="background:${t.color}"></div>
+      <button class="em">${t.emoji}</button>
+      <input maxlength="8" placeholder="팀 이름" value="${t.name}">
+      <button class="del">✕</button>`;
+    r.querySelector('.sw').onclick=()=>{t.color=CONFIG.palette[(CONFIG.palette.indexOf(t.color)+1)%CONFIG.palette.length];beep(700,.06,'sine',.1);drawSetup()};
+    r.querySelector('.em').onclick=()=>{t.emoji=CONFIG.emojis[(CONFIG.emojis.indexOf(t.emoji)+1)%CONFIG.emojis.length];beep(800,.06,'sine',.1);drawSetup()};
+    r.querySelector('input').oninput=e=>t.name=e.target.value;
+    r.querySelector('.del').onclick=()=>{if(draft.length>2){draft.splice(i,1);buzz();drawSetup()}};
+    L.appendChild(r);
+  });
+}
+function addTeam(){
+  if(draft.length>=6)return;
+  const i=draft.length;
+  draft.push({name:"",color:CONFIG.palette[i%6],emoji:CONFIG.emojis[i%CONFIG.emojis.length]});
+  beep(900,.08,'triangle',.13);drawSetup();
+}
+function startGame(){
+  state={round:1,teams:draft.map((t,i)=>({name:t.name.trim()||`${i+1}팀`,color:t.color,
+    emoji:t.emoji,pos:0,score:0,rolled:false}))};
+  history=[];
+  document.getElementById('setupOv').classList.remove('show');
+  buildBoard();buildTokens();refresh();setTimeout(redraw,80);
+  save();fanfare();burst(innerWidth/2,innerHeight/2,120);
+}
+
+/* ---- 보드 ---- */
+function tilePos(i){const r=Math.floor(i/CONFIG.cols);let c=i%CONFIG.cols;
+  if(r%2===1)c=CONFIG.cols-1-c;return{r,c}}
+function countryAt(i){return CONFIG.countries.find(x=>x.tile===i)}
+function buildBoard(){
+  board.innerHTML='';tiles=[];
+  board.style.gridTemplateColumns=`repeat(${CONFIG.cols},1fr)`;
+  board.style.gridTemplateRows=`repeat(${CONFIG.rows},1fr)`;
+  for(let i=0;i<TOTAL;i++){
+    const{r,c}=tilePos(i),d=document.createElement('div');
+    d.className='tile';d.style.gridRow=r+1;d.style.gridColumn=c+1;
+    const ct=countryAt(i);
+    if(i===0){d.classList.add('start');d.innerHTML='<div style="font-size:1.7em">🛫</div>출발<br>인천공항';}
+    else if(i===GOAL){d.classList.add('goal');d.innerHTML='<div style="font-size:1.7em">🎁</div>골인!';}
+    else if(ct){d.classList.add('country');d.innerHTML=`<div class="flag">${ct.flag}</div>${ct.name}`;}
+    else d.innerHTML=`<span class="num">${i}</span>☁️`;
+    board.appendChild(d);tiles.push(d);
+  }
+}
+function buildTokens(){
+  document.querySelectorAll('.token').forEach(t=>t.remove());
+  tokens=state.teams.map(t=>{const e=document.createElement('div');
+    e.className='token';e.style.background=t.color;e.innerHTML=`<span>${t.emoji}</span>`;
+    board.appendChild(e);return e});
+}
+function place(i,idx,anim=true){
+  const b=board.getBoundingClientRect(),t=tiles[idx].getBoundingClientRect();
+  const off=(i-(state.teams.length-1)/2)*14,el=tokens[i];
+  if(!anim)el.style.transition='none';
+  el.style.left=(t.left-b.left+t.width/2-22+off)+'px';
+  el.style.top=(t.top-b.top+t.height/2-22)+'px';
+  if(!anim)requestAnimationFrame(()=>el.style.transition='');
+}
+function redraw(){if(state)state.teams.forEach((t,i)=>place(i,t.pos,false))}
+addEventListener('resize',redraw);
+
+/* ---- 화면 갱신 ---- */
+function refresh(){buildPanel();buildMini();if(document.getElementById('scoreOv').classList.contains('show'))buildBig()}
+function leader(){const m=Math.max(...state.teams.map(t=>t.score));return m>0?m:-1}
+function buildMini(){
+  const ld=leader();
+  mini.innerHTML='<h3>🏅 실시간 점수</h3>'+state.teams.map(t=>
+    `<div class="mrow ${t.score===ld?'lead':''}"><div class="dot" style="background:${t.color}"></div>
+     <div class="mn">${t.score===ld?'👑':''}${t.name}</div><div class="ms">${t.score}</div></div>`).join('')
+    +'<div class="tip">눌러서 크게 보기</div>';
+}
+mini.onclick=openScore;
+function buildPanel(){
+  panel.innerHTML='';
+  state.teams.forEach((t,i)=>{
+    const c=document.createElement('div');
+    c.className='card'+(t.rolled?' done':'');c.style.borderColor=t.color;
+    c.innerHTML=`<div class="tname" style="color:${t.color}">${t.emoji} ${t.name}</div>
+      <div class="pos">${t.pos===GOAL?'🎉 도착!':t.pos+' / '+GOAL+' 칸'}</div><div class="ranks"></div>`;
+    const rw=c.querySelector('.ranks');
+    CONFIG.ranks.forEach((r,ri)=>{const b=document.createElement('button');
+      b.textContent=r.label;b.disabled=t.rolled||t.pos===GOAL||busy;b.onclick=()=>roll(i,ri);rw.appendChild(b)});
+    panel.appendChild(c);
+  });
+  document.getElementById('round').textContent=
+    `${state.round}번째 게임 · 주사위 던진 팀 ${state.teams.filter(t=>t.rolled).length} / ${state.teams.length}`;
+}
+
+/* ---- 점수 ---- */
+function countUp(el,from,to,dur=650){
+  const t0=performance.now();let last=0;
+  const tick=t=>{const p=Math.min(1,(t-t0)/dur);
+    el.textContent=Math.round(from+(to-from)*(1-Math.pow(1-p,3)));
+    if(t-last>70){beep(500+Math.random()*500,.05,'square',.08);last=t}
+    if(p<1)requestAnimationFrame(tick);};
+  requestAnimationFrame(tick);
+}
+function addScore(i,pt){
+  const t=state.teams[i],from=t.score;
+  history.push({i,pt});t.score+=pt;save();
+  const cards=document.querySelectorAll('.big');
+  if(cards[i]){
+    const s=cards[i].querySelector('.bs');
+    countUp(s,from,t.score);
+    cards[i].classList.add('pop');setTimeout(()=>cards[i].classList.remove('pop'),180);
+    const r=cards[i].getBoundingClientRect();
+    if(pt>0){burst(r.left+r.width/2,r.top+r.height/2,pt>=5?110:45,[t.color,'#ffd66b','#fff']);
+      if(pt>=5)shake();fanfare();}
+    else buzz();
+  }
+  buildMini();
+  setTimeout(()=>{const ld=leader();
+    document.querySelectorAll('.big').forEach((c,k)=>c.classList.toggle('lead',state.teams[k].score===ld))},700);
+}
+function undo(){
+  if(!history.length){buzz();return}
+  const h=history.pop();state.teams[h.i].score-=h.pt;save();buildBig();buildMini();beep(400,.15,'sine',.12);
+}
+function buildBig(){
+  const w=document.getElementById('bigWrap'),ld=leader();w.innerHTML='';
+  state.teams.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='big'+(t.score===ld?' lead':'');d.style.borderColor=t.color;
+    d.innerHTML=`<div class="bn" style="color:${t.color}">${t.score===ld?'👑 ':''}${t.emoji} ${t.name}</div>
+      <div class="bs">${t.score}</div><div class="chips"></div>`;
+    const ch=d.querySelector('.chips');
+    CONFIG.scoreButtons.forEach(b=>{const btn=document.createElement('button');
+      btn.textContent=b.label;btn.onclick=()=>addScore(i,b.pt);ch.appendChild(btn)});
+    w.appendChild(d);
+  });
+}
+function openScore(){if(busy)return;buildBig();document.getElementById('scoreOv').classList.add('show');beep(880,.1,'triangle',.13)}
+function closeScore(){document.getElementById('scoreOv').classList.remove('show');setTimeout(redraw,60)}
+
+/* ---- 주사위 ---- */
+function roll(ti,ri){
+  if(busy)return;busy=true;
+  const t=state.teams[ti],rk=CONFIG.ranks[ri],ov=document.getElementById('diceOv');
+  document.getElementById('diceWho').innerHTML=`<span style="color:${t.color}">${t.emoji} ${t.name}</span> · ${rk.label}`;
+  document.getElementById('diceSub').textContent=
+    rk.dice.map(d=>d===6?'🎲 큰 주사위':'🔹 작은 주사위').join(' + ')+(rk.bonus?` + 보너스 ${rk.bonus}`:'');
+  ov.classList.add('show');
+  const box=document.getElementById('diceBox');let n=0;
+  const sp=setInterval(()=>{
+    box.textContent=rk.dice.reduce((s,d)=>s+1+Math.floor(Math.random()*d),0)+rk.bonus;
+    beep(300+Math.random()*400,.05,'square',.07);
+    if(++n>18){clearInterval(sp);
+      const v=rk.dice.reduce((s,d)=>s+1+Math.floor(Math.random()*d),0)+rk.bonus;
+      box.textContent=v;beep(880,.35,'triangle',.2);shake();
+      burst(innerWidth/2,innerHeight/2,60);
+      setTimeout(()=>{ov.classList.remove('show');move(ti,v)},900);}
+  },70);
+}
+function move(ti,steps){
+  state.teams[ti].rolled=true;let left=steps;
+  const step=()=>{
+    const t=state.teams[ti];
+    if(left<=0||t.pos>=GOAL)return arrive(ti);
+    t.pos++;left--;place(ti,t.pos);
+    tokens[ti].classList.add('hop');beep(600,.06,'sine',.1);
+    setTimeout(()=>tokens[ti].classList.remove('hop'),160);
+    setTimeout(step,330);
+  };step();
+}
+function arrive(ti){
+  const p=state.teams[ti].pos,ct=countryAt(p);
+  if(ct){tiles[p].classList.add('visited');showCard(ct);}
+  else if(p===GOAL){tiles[p].classList.add('visited');fanfare();
+    burst(innerWidth/2,innerHeight*.4,140);shake();}
+  busy=false;refresh();save();checkWin();
+}
+function showCard(ct){
+  document.getElementById('cardFlag').textContent=ct.flag;
+  document.getElementById('cardName').textContent=ct.name;
+  document.getElementById('cardHi').textContent=`"${ct.hi}"`;
+  document.getElementById('cardFact').textContent=ct.fact;
+  document.getElementById('cardOv').classList.add('show');
+  fanfare();burst(innerWidth/2,innerHeight*.35,110);
+}
+
+/* ---- 진행 ---- */
+function nextRound(){if(busy)return;state.round++;state.teams.forEach(t=>t.rolled=false);refresh();save();beep(660,.15,'triangle',.14)}
+function allFinish(){
+  if(busy)return;busy=true;let i=0;
+  const go=()=>{
+    if(i>=state.teams.length){busy=false;refresh();save();
+      tiles[GOAL].classList.add('visited');
+      setTimeout(()=>{document.getElementById('winOv').classList.add('show');
+        fanfare();shake();burst(innerWidth/2,innerHeight/2,200);},500);return;}
+    if(state.teams[i].pos<GOAL){state.teams[i].pos=GOAL;place(i,GOAL);
+      beep(700,.2,'triangle',.15);burst(innerWidth/2,innerHeight*.45,50);}
+    i++;setTimeout(go,450);
+  };go();
+}
+function checkWin(){if(state.teams.every(t=>t.pos===GOAL))allFinish()}
+function askReset(){
+  if(!confirm('점수와 위치를 모두 지우고 처음부터 시작할까요?'))return;
+  localStorage.removeItem(KEY);location.reload();
+}
+
+/* ---- 저장 ---- */
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function loadSaved(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+
+document.querySelectorAll('.overlay').forEach(o=>{
+  if(['diceOv','setupOv','scoreOv'].includes(o.id))return;
+  o.onclick=()=>o.classList.remove('show');
+});
+addEventListener('keydown',e=>{if(e.key==='Escape')closeScore()});
+
+/* ---- 시작 ---- */
+document.getElementById('title').textContent=CONFIG.title;
+draft=[0,1,2,3].map(i=>({name:"",color:CONFIG.palette[i],emoji:CONFIG.emojis[i]}));
+drawSetup();
+const saved=loadSaved();
+if(saved&&saved.teams&&saved.teams.length){
+  const w=document.getElementById('contWrap');
+  w.innerHTML=`<div style="margin-top:20px;color:#9fc4ff">저장된 게임이 있어요
+    (${saved.teams.map(t=>t.name+' '+t.score+'점').join(' · ')})</div>`;
+  const b=document.createElement('button');b.className='bCont';
+  b.style.cssText='margin-top:10px;border:none;border-radius:14px;padding:12px 26px;font-size:17px;font-weight:900;cursor:pointer';
+  b.textContent='↩ 이어서 하기';
+  b.onclick=()=>{state=saved;history=[];
+    document.getElementById('setupOv').classList.remove('show');
+    buildBoard();buildTokens();
+    state.teams.forEach(t=>{if(countryAt(t.pos))tiles[t.pos].classList.add('visited')});
+    refresh();setTimeout(redraw,80);};
+  w.appendChild(b);
+}
+</script>
+</html>
