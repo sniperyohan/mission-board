@@ -189,6 +189,26 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
   #setupList{ margin-top:22px; }
   #setupList > *{ margin-bottom:16px; }
   </style>
+  #sky{
+    position:fixed; inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:0;
+  }
+  #sky .plane{
+    position:absolute;
+    left:-14vw;
+    font-size:clamp(26px,3vw,46px);
+    opacity:.28;
+    filter:drop-shadow(0 4px 10px rgba(120,170,255,.35));
+    animation:fly linear infinite;
+  }
+  @keyframes fly{
+    0%{ transform:translateX(0) translateY(0) rotate(-6deg); }
+    50%{ transform:translateX(60vw) translateY(-26px) rotate(4deg); }
+    100%{ transform:translateX(130vw) translateY(0) rotate(-6deg); }
+  }
+  </style>
 
 </head>
 <body>
@@ -228,6 +248,24 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
   </div>
 </div>
 
+<div id="sky">
+  <div class="plane">✈️</div>
+  <div class="plane">✈️</div>
+  <div class="plane">✈️</div>
+</div>
+<script>
+  document.querySelectorAll('#sky .plane').forEach(function(p){
+    function go(){
+      p.style.top = (8 + Math.random()*74) + 'vh';
+      p.style.animationDuration = (14 + Math.random()*14) + 's';
+      p.style.fontSize = (24 + Math.random()*26) + 'px';
+      p.style.opacity = (0.18 + Math.random()*0.22).toFixed(2);
+    }
+    go();
+    p.style.animationDelay = (Math.random()*12) + 's';
+    p.addEventListener('animationiteration', go);
+  });
+</script>
 <div class="overlay show" id="setupOv">
   <div class="brand">충현교회 JOY유치부<small>세계로 가는 비행기</small></div>
   <h2>팀을 만들어요</h2>
