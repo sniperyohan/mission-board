@@ -435,12 +435,11 @@ function move(ti,steps){
     const ct=countryAt(t.pos);
     if(ct){
       tiles[t.pos].classList.add('visited');
-      if(!state.found.includes(ct.code)){          // 처음 발견한 나라만 카드
-        state.found.push(ct.code);save();buildPanel();
-        setTimeout(()=>showCard(ct,()=>setTimeout(step,320)),380);
-        return;
-      }
-      beep(950,.12,'triangle',.13);               // 이미 본 나라는 소리만
+      const again=state.found.includes(ct.code);   // 두 번째부터는 '또 만났어요'
+      if(!again){state.found.push(ct.code);}
+      save();buildPanel();
+      setTimeout(()=>showCard(ct,again,()=>setTimeout(step,320)),380);
+      return;
     }
     setTimeout(step,320);
   };
@@ -453,9 +452,9 @@ function arrive(ti){
   busy=false;refresh();save();
   if(state.teams.every(t=>t.pos===GOAL))allFinish();
 }
-function showCard(ct,cb){
+function showCard(ct,again,cb){
   document.getElementById('cardFlag').innerHTML=flagHTML(ct.code);
-  document.getElementById('cardName').textContent=ct.name;
+  document.getElementById('cardName').textContent=(again?'또 만났어요! ':'')+ct.name;
   document.getElementById('cardHi').textContent=`"${ct.hi}"`;
   document.getElementById('cardFact').textContent=ct.fact;
   document.getElementById('cardPray').textContent=`🙏 ${ct.pray} 기도해요`;
