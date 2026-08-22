@@ -130,7 +130,33 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
 .bStart{background:linear-gradient(160deg,#7bffb0,#14b86a);color:#04371f}
 .bAdd{background:rgba(255,255,255,.16);color:#fff}
 .bCont{background:linear-gradient(160deg,#ffd66b,#ff9f1c);color:#4a2800}
-</style>
+  .brand{
+    font-size:clamp(34px,5.2vw,72px);
+    font-weight:900;
+    letter-spacing:-1px;
+    text-align:center;
+    margin-bottom:6px;
+    background:linear-gradient(90deg,#ffd86b,#fff3b0,#ffb347,#ffd86b);
+    background-size:250% 100%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    filter:drop-shadow(0 4px 14px rgba(255,190,60,.45));
+    animation:brandShine 4s linear infinite, brandPop .8s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  .brand small{
+    display:block;
+    font-size:.34em;
+    font-weight:700;
+    letter-spacing:6px;
+    color:#9fb4ff;
+    -webkit-text-fill-color:#9fb4ff;
+    margin-top:10px;
+  }
+  @keyframes brandShine{to{background-position:250% 0}}
+  @keyframes brandPop{from{opacity:0;transform:scale(.8) translateY(-18px)}to{opacity:1;transform:none}}
+  </style>
+
 </head>
 <body>
 <canvas id="stars"></canvas><canvas id="fx"></canvas>
@@ -170,6 +196,7 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
 </div>
 
 <div class="overlay show" id="setupOv">
+  <div class="brand">충현교회 JOY유치부<small>세계로 가는 비행기</small></div>
   <h2>팀을 만들어요</h2>
   <p class="sub">동그라미를 누르면 색, 이모지를 누르면 말 모양이 바뀝니다</p>
   <div id="setupList" style="width:min(560px,92vw)"></div>
