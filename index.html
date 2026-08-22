@@ -196,9 +196,9 @@ const CONFIG = {
     {label:"6등",dice:[2],bonus:0}
   ],
   scoreButtons:[
-    {label:"🏆 1등",pt:10},{label:"🥈 2등",pt:6},{label:"🥉 3등",pt:4},
-    {label:"📣 응원왕",pt:5},{label:"🙌 발표",pt:3},{label:"🧹 정리",pt:2},
-    {label:"＋1",pt:1},{label:"－1",pt:-1}
+    {label:"🏆 1등",pt:100},{label:"🥈 2등",pt:60},{label:"🥉 3등",pt:40},
+    {label:"📣 응원왕",pt:50},{label:"🙌 발표",pt:30},{label:"🧹 정리",pt:20},
+    {label:"＋10",pt:10},{label:"－10",pt:-10}
   ],
   // 우리 교회 선교지 12개국 (인천 출발 → 북쪽·서쪽 → 남쪽으로 내려오는 경로)
   countries:[
@@ -377,8 +377,8 @@ function addScore(i,pt){
     countUp(cards[i].querySelector('.bs'),from,t.score);
     cards[i].classList.add('pop');setTimeout(()=>cards[i].classList.remove('pop'),180);
     const r=cards[i].getBoundingClientRect();
-    if(pt>0){burst(r.left+r.width/2,r.top+r.height/2,pt>=5?110:45,[t.color,'#ffd66b','#fff']);
-      if(pt>=5)shake();fanfare();}
+    if(pt>0){burst(r.left+r.width/2,r.top+r.height/2,pt>=50?110:45,[t.color,'#ffd66b','#fff']);
+      if(pt>=50)shake();fanfare();}
     else buzz();
   }
   buildMini();
