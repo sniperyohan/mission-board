@@ -189,25 +189,6 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
   #setupList{ margin-top:22px; }
   #setupList > *{ margin-bottom:16px; }
   body:has(#setupOv.show) header{ display:none; }
-  #sky{
-    position:fixed; inset:0;
-    pointer-events:none;
-    overflow:hidden;
-    z-index:60;
-  }
-  #sky .plane{
-    position:absolute;
-    left:-14vw;
-    font-size:clamp(26px,3vw,46px);
-    opacity:.28;
-    filter:drop-shadow(0 4px 10px rgba(120,170,255,.35));
-    animation:fly linear infinite;
-  }
-  @keyframes fly{
-    0%{ transform:translateX(0) translateY(0) rotate(-6deg); }
-    50%{ transform:translateX(60vw) translateY(-26px) rotate(4deg); }
-    100%{ transform:translateX(130vw) translateY(0) rotate(-6deg); }
-  }
   </style>
 
 </head>
