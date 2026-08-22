@@ -240,13 +240,6 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
     <button onclick="closeScore()">✕ 보드로 돌아가기</button>
   </div>
 </div>
-
-<div id="sky">
-  <div class="plane">✈️</div>
-  <div class="plane">✈️</div>
-  <div class="plane">✈️</div>
-</div>
-<script>
   document.querySelectorAll('#sky .plane').forEach(function(p){
     function go(){
       p.style.top = (8 + Math.random()*74) + 'vh';
