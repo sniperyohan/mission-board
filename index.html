@@ -240,18 +240,6 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
     <button onclick="closeScore()">✕ 보드로 돌아가기</button>
   </div>
 </div>
-  document.querySelectorAll('#sky .plane').forEach(function(p){
-    function go(){
-      p.style.top = (8 + Math.random()*74) + 'vh';
-      p.style.animationDuration = (14 + Math.random()*14) + 's';
-      p.style.fontSize = (24 + Math.random()*26) + 'px';
-      p.style.opacity = (0.18 + Math.random()*0.22).toFixed(2);
-    }
-    go();
-    p.style.animationDelay = (Math.random()*12) + 's';
-    p.addEventListener('animationiteration', go);
-  });
-</script>
 <div class="overlay show" id="setupOv">
   <div class="brand">충현교회 JOY유치부<small>세계로 가는 비행기</small></div>
   <h2>팀을 만들어요</h2>
