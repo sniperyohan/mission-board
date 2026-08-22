@@ -191,7 +191,9 @@ const CONFIG = {
     {label:"1등",dice:[6,6],bonus:0},
     {label:"2등",dice:[6,3],bonus:0},
     {label:"3등",dice:[6],bonus:1},
-    {label:"4등",dice:[3],bonus:2}
+    {label:"4등",dice:[3],bonus:2},
+    {label:"5등",dice:[3],bonus:3},
+    {label:"6등",dice:[3],bonus:3}
   ],
   scoreButtons:[
     {label:"🏆 1등",pt:10},{label:"🥈 2등",pt:6},{label:"🥉 3등",pt:4},
@@ -349,7 +351,7 @@ function buildPanel(){
     c.innerHTML=`<div class="tname" style="color:${t.color}">${t.emoji} ${t.name}</div>
       <div class="pos">${t.pos===GOAL?'🎉 도착!':t.pos+' / '+GOAL+' 칸'}</div><div class="ranks"></div>`;
     const rw=c.querySelector('.ranks');
-    CONFIG.ranks.forEach((r,ri)=>{const b=document.createElement('button');
+    CONFIG.ranks.slice(0,state.teams.length).forEach((r,ri)=>{const b=document.createElement('button');
       b.textContent=r.label;b.disabled=t.rolled||t.pos===GOAL||busy;b.onclick=()=>roll(i,ri);rw.appendChild(b)});
     panel.appendChild(c);
   });
