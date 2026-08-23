@@ -211,6 +211,11 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
     font-size:clamp(12px,1.15vw,17px) !important;
     font-weight:800;
   }
+    @media (max-width:820px){
+    #board{ aspect-ratio:auto !important; height:auto !important; }
+    #board .tile{ min-height:70px; }
+  }
+
   </style>
 
 </head>
@@ -378,10 +383,19 @@ function startGame(){
 }
 
 /* ---- 보드 ---- */
+let mobileMode=null;
+function syncLayout(){
+  const m=innerWidth<=820, changed=(m!==mobileMode);
+  mobileMode=m;
+  CONFIG.cols=m?4:7;
+  CONFIG.rows=m?9:5;
+  return changed;
+}
 function tilePos(i){const r=Math.floor(i/CONFIG.cols);let c=i%CONFIG.cols;
   if(r%2===1)c=CONFIG.cols-1-c;return{r,c}}
 function countryAt(i){return CONFIG.countries.find(x=>x.tile===i)}
 function buildBoard(){
+  syncLayout();
   board.innerHTML='';tiles=[];
   board.style.gridTemplateColumns=`repeat(${CONFIG.cols},1fr)`;
   board.style.gridTemplateRows=`repeat(${CONFIG.rows},1fr)`;
@@ -411,7 +425,14 @@ function place(i,idx,anim=true){
   if(!anim)requestAnimationFrame(()=>el.style.transition='');
 }
 function redraw(){if(state)state.teams.forEach((t,i)=>place(i,t.pos,false))}
-addEventListener('resize',redraw);
+addEventListener('resize',()=>{
+  if(state && ((innerWidth<=820)!==mobileMode)){
+    buildBoard();buildTokens();
+    CONFIG.countries.forEach(c=>{if(state.found.includes(c.code))tiles[c.tile].classList.add('visited')});
+    if(state.teams.some(t=>t.pos===GOAL))tiles[GOAL].classList.add('visited');
+  }
+  setTimeout(redraw,50);
+});
 
 /* ---- 갱신 ---- */
 function refresh(){buildPanel();buildMini();
