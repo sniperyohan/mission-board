@@ -288,7 +288,7 @@ emojis: ['🚀','🦁','🐧','🐯','🦊','🐻','🕊️','🐑','⭐','🎈'
     {label:"6등",dice:[2],bonus:0}
   ],
   scoreButtons:[
-    {label:"🏆 1등",pt:100},{label:"🥈 2등",pt:60},{label:"🥉 3등",pt:40},
+    {label:"🏆 1등",pt:1000},{label:"🥈 2등",pt:500},{label:"🥉 3등",pt:40},
     {label:"📣 응원왕",pt:50},{label:"🙌 발표",pt:30},{label:"🧹 정리",pt:20},
     {label:"＋10",pt:10},{label:"－10",pt:-10}
   ],
@@ -490,8 +490,7 @@ function addScore(i,pt){
     else buzz();
   }
   buildMini();
-  setTimeout(()=>{const ld=leader();
-    document.querySelectorAll('.big').forEach((c,k)=>c.classList.toggle('lead',state.teams[k].score===ld))},700);
+  setTimeout(buildBig,700);
 }
 function undo(){
   if(!history.length){buzz();return}
