@@ -244,6 +244,33 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
     animation:wiggle 2.2s ease-in-out infinite;
     transform-origin:center;
   }
+  /* === 우측 사이드바 레이아웃 === */
+  body{display:grid !important;grid-template-columns:1fr 270px;
+    grid-template-rows:auto 1fr;height:100vh;overflow:hidden}
+  header{grid-column:1/-1}
+  #board{grid-column:1;grid-row:2;margin:5px 8px 10px 12px !important}
+  #rail{grid-column:2;grid-row:2;display:flex;flex-direction:column;
+    gap:8px;padding:6px 8px 8px 0;overflow-y:auto}
+
+  #mini{position:static !important;width:auto !important}
+
+  #panel{flex-direction:column;gap:8px;padding:0 !important}
+  #panel .card{min-width:0;width:100%;padding:10px}
+  #panel .card .tname{font-size:20px}
+  #panel .card .pos{font-size:13px}
+  #panel .ranks{flex-wrap:wrap;gap:6px}
+  #panel .ranks button{font-size:15px;padding:9px 10px;flex:1 1 40%}
+
+  #tools{flex-direction:column;padding:0 !important}
+  #tools button{width:100%;font-size:15px;padding:11px 8px}
+
+  @media (max-width:820px){
+    body{display:flex !important;flex-direction:column}
+    #rail{overflow:visible}
+    #panel{flex-direction:row}
+    #tools{flex-direction:row;flex-wrap:wrap}
+    #tools button{width:auto}
+  }
   </style>
 
 </head>
@@ -252,6 +279,7 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
 
 <header><h1 id="title"></h1><div id="round"></div></header>
 <div id="board"></div>
+<aside id="rail">
 <div id="mini"></div>
 <div id="panel"></div>
 <div id="tools">
@@ -262,6 +290,7 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
   <button onclick="allFinish()">🎉 다같이 골인!</button>
   <button onclick="askReset()">처음부터</button>
 </div>
+</aside>
 
 <div class="overlay" id="diceOv">
   <div id="diceWho"></div><div id="diceBox">?</div><div id="diceSub"></div>
