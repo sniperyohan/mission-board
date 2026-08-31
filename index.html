@@ -692,5 +692,28 @@ if(saved&&saved.teams&&saved.teams.length){
     refresh();setTimeout(redraw,90);};
   w.appendChild(b);
 }
+
+/* ---- 점수 직접 입력 ---- */
+function askScore(i){
+  const t = state.teams[i];
+  const v = prompt(`${t.name} 에게 줄 점수를 입력하세요.\n(빼려면 -50 처럼 마이너스)`, "100");
+  if(v === null) return;
+  const pt = parseInt(v, 10);
+  if(isNaN(pt) || pt === 0){ alert("숫자를 입력해 주세요."); return; }
+  addScore(i, pt);
+}
+(function(){
+  const orig = buildBig;
+  buildBig = function(){
+    orig.apply(this, arguments);
+    document.querySelectorAll('.big').forEach((card, i) => {
+      const b = document.createElement('button');
+      b.textContent = '✏️ 직접 입력';
+      b.className = 'manualbtn';
+      b.onclick = () => askScore(i);
+      card.appendChild(b);
+    });
+  };
+})();
 </script>
 </html>
