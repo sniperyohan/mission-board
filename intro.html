@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>인트로 영상</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#05081c;overflow:hidden;
+  font-family:'Pretendard','Malgun Gothic',sans-serif}
+#wrap{height:100%;display:flex;align-items:center;justify-content:center}
+video{max-width:100%;max-height:100%;border-radius:14px;
+  box-shadow:0 0 60px rgba(80,130,255,.35)}
+#unmute{position:fixed;left:50%;top:24px;transform:translateX(-50%);
+  background:#ffd66b;color:#3a2600;border:none;border-radius:999px;
+  padding:12px 26px;font-size:17px;font-weight:800;cursor:pointer;
+  box-shadow:0 6px 20px rgba(0,0,0,.5);display:none;z-index:5}
+#close{position:fixed;right:20px;top:20px;background:rgba(255,255,255,.16);
+  color:#fff;border:none;border-radius:12px;padding:11px 20px;
+  font-size:15px;font-weight:800;cursor:pointer;z-index:5}
+#close:hover{background:rgba(255,255,255,.3)}
+</style>
+</head>
+<body>
+<button id="unmute" onclick="unmute()">🔊 소리 켜기 (클릭)</button>
+<button id="close" onclick="window.close()">✕ 닫기</button>
+<div id="wrap">
+  <video id="v" src="video/intro.mp4" autoplay playsinline controls></video>
+</div>
+<script>
+const v = document.getElementById('v');
+const btn = document.getElementById('unmute');
+v.play().catch(() => {           // 소리 있는 자동재생이 막히면
+  v.muted = true;                // 음소거로 재생하고
+  v.play();
+  btn.style.display = 'block';   // 소리 켜기 버튼 노출
+});
+function unmute(){ v.muted = false; v.play(); btn.style.display = 'none'; }
+v.onended = () => window.close();
+</script>
+</body>
+</html>
