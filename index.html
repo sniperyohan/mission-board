@@ -271,14 +271,18 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
     #tools{flex-direction:row;flex-wrap:wrap}
     #tools button{width:auto}
   }
-  .manualbtn{display:block;margin:14px auto 2px;cursor:pointer;
-    border:1.5px dashed rgba(255,214,107,.55);border-radius:999px;
-    padding:8px 20px;font-size:14px;font-weight:800;letter-spacing:.5px;
+  .mbtns{display:flex;gap:6px;justify-content:center;margin-top:8px}
+  .manualbtn{cursor:pointer;border:1px dashed rgba(255,214,107,.5);border-radius:10px;
+    padding:5px 12px;font-size:13px;font-weight:800;line-height:1.2;
     background:rgba(255,214,107,.10);color:#ffd66b;
-    transition:background .18s,box-shadow .18s,transform .12s}
+    transition:background .18s,box-shadow .18s}
   .manualbtn:hover{background:rgba(255,214,107,.22);border-style:solid;
-    box-shadow:0 0 18px rgba(255,214,107,.45);transform:translateY(-2px)}
-  .manualbtn:active{transform:translateY(0) scale(.97)}
+    box-shadow:0 0 12px rgba(255,214,107,.35)}
+  .manualbtn:active{transform:scale(.97)}
+  .manualbtn.zero{border-color:rgba(255,255,255,.28);
+    background:rgba(255,255,255,.07);color:#b9c8ee}
+  .manualbtn.zero:hover{background:rgba(255,120,120,.20);
+    border-color:rgba(255,140,140,.6);color:#ffd5d5;box-shadow:none}
   </style>
 
 </head>
@@ -710,16 +714,33 @@ function askScore(i){
   if(isNaN(pt) || pt === 0){ alert("숫자를 입력해 주세요."); return; }
   addScore(i, pt);
 }
+function zeroScore(i){
+  const t = state.teams[i];
+  if(t.score === 0) return;
+  if(!confirm(`${t.name} 의 점수를 0점으로 되돌릴까요?\n(현재 ${t.score}점)`)) return;
+  addScore(i, -t.score);
+}
 (function(){
   const orig = buildBig;
   buildBig = function(){
     orig.apply(this, arguments);
     document.querySelectorAll('.big').forEach((card, i) => {
+      const row = document.createElement('div');
+      row.className = 'mbtns';
+
       const b = document.createElement('button');
       b.textContent = '✏️ 직접 입력';
       b.className = 'manualbtn';
       b.onclick = () => askScore(i);
-      card.appendChild(b);
+      row.appendChild(b);
+
+      const z = document.createElement('button');
+      z.textContent = '↺ 0점';
+      z.className = 'manualbtn zero';
+      z.onclick = () => zeroScore(i);
+      row.appendChild(z);
+
+      card.appendChild(row);
     });
   };
 })();
