@@ -271,6 +271,18 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
     #tools{flex-direction:row;flex-wrap:wrap}
     #tools button{width:auto}
   }
+  /* === 점수판 크게: 6팀 대응 === */
+  #scoreOv{overflow-y:auto!important;padding:16px 0!important;
+    align-items:flex-start!important}
+  #scoreOv .bigwrap,#scoreOv >div{max-width:100%}
+  .big{max-width:230px}
+  .big .bs{font-size:clamp(38px,5vw,72px)!important;line-height:1.05}
+
+  @media (max-height:900px){
+    .big .bs{font-size:clamp(30px,4vw,54px)!important}
+    .big{padding:8px!important}
+  }
+
   .big .mbtns{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:4px}
   .big .mbtns button.manualbtn{
     cursor:pointer;border:none!important;border-radius:9px!important;
