@@ -271,17 +271,21 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
     #tools{flex-direction:row;flex-wrap:wrap}
     #tools button{width:auto}
   }
-  /* === 점수판 크게: 6팀 대응 === */
-  #scoreOv{overflow-y:auto!important;padding:16px 0!important;
-    align-items:flex-start!important}
-  #scoreOv .bigwrap,#scoreOv >div{max-width:100%}
-  .big{max-width:230px}
-  .big .bs{font-size:clamp(38px,5vw,72px)!important;line-height:1.05}
+  /* === 점수판 크게: 5~6팀 대응 === */
+  #scoreOv{overflow:hidden!important;padding:8px!important}
+  #bigWrap{max-width:100%;max-height:100%}
 
-  @media (max-height:900px){
-    .big .bs{font-size:clamp(30px,4vw,54px)!important}
-    .big{padding:8px!important}
-  }
+  #bigWrap[data-n="5"],#bigWrap[data-n="6"]{
+    display:grid!important;grid-template-columns:repeat(3,1fr);
+    gap:8px!important;width:min(96vw,1180px)}
+  #bigWrap[data-n="5"] .big,#bigWrap[data-n="6"] .big{
+    margin:0!important;padding:6px 8px!important;min-width:0!important}
+  #bigWrap[data-n="5"] .bs,#bigWrap[data-n="6"] .bs{
+    font-size:clamp(26px,4.2vh,46px)!important;line-height:1.05!important}
+  #bigWrap[data-n="5"] .bn,#bigWrap[data-n="6"] .bn{
+    font-size:clamp(14px,2vh,20px)!important}
+  #bigWrap[data-n="5"] .chips button,#bigWrap[data-n="6"] .chips button{
+    font-size:11px!important;padding:4px 7px!important}
 
   .big .mbtns{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:4px}
   .big .mbtns button.manualbtn{
@@ -578,6 +582,7 @@ function undo(){
 }
 function buildBig(){
   const w=document.getElementById('bigWrap'),ld=leader();w.innerHTML='';
+  w.dataset.n=state.teams.length;
   state.teams.forEach((t,i)=>{
     const d=document.createElement('div');
     d.className='big'+(t.score===ld?' lead':'');d.style.borderColor=t.color;
