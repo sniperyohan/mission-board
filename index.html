@@ -565,7 +565,8 @@ function addScore(i,pt){
     countUp(cards[i].querySelector('.bs'),from,t.score);
     cards[i].classList.add('pop');setTimeout(()=>cards[i].classList.remove('pop'),180);
     const r=cards[i].getBoundingClientRect();
-    if(pt>0){fanfare();}
+    if(pt>0){burst(r.left+r.width/2,r.top+r.height/2,pt>=50?110:45,[t.color,'#ffd66b','#fff']);
+      if(pt>=50)shake();fanfare();}
     else buzz();
   }
   buildMini();
