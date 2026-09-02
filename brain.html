@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🧠 깜짝 두뇌게임</title>
+<style>
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;height:100vh;overflow:hidden;color:#fff;
+  font-family:'Pretendard','Malgun Gothic',-apple-system,sans-serif;
+  background:radial-gradient(1100px 620px at 50% -12%,#1c2666,#0a0f2a 62%);
+  display:flex;flex-direction:column}
+
+/* ===== 모드 선택 ===== */
+#pick{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#pick h1{font-size:clamp(28px,4.6vw,52px);margin:0;color:#ffd66b;text-shadow:0 4px 18px rgba(0,0,0,.5)}
+#pick p{margin:2px 0 26px;opacity:.75;font-size:16px}
+.modes{display:flex;gap:26px;flex-wrap:wrap;justify-content:center}
+.mode{width:300px;padding:30px 20px;border-radius:22px;cursor:pointer;color:#fff;
+  border:2px dashed rgba(255,214,107,.45);background:rgba(255,255,255,.06);
+  display:flex;flex-direction:column;align-items:center;gap:10px;transition:.18s}
+.mode:hover{transform:translateY(-6px);background:rgba(255,214,107,.14);border-color:#ffd66b}
+.mode .emo{font-size:60px}
+.mode b{font-size:24px}
+.mode small{opacity:.7;font-size:13px;line-height:1.5;text-align:center}
+
+/* ===== 상단 바 ===== */
+#bar,#mathbar{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-wrap:wrap}
+#bar{border-bottom:1px solid rgba(255,255,255,.10)}
+#mathbar{background:rgba(255,214,107,.08);border-bottom:1px solid rgba(255,214,107,.18)}
+.ic{border:none;border-radius:10px;padding:7px 14px;font-size:14px;font-weight:800;cursor:pointer;
+  background:rgba(255,255,255,.14);color:#fff;white-space:nowrap}
+.ic:hover{background:rgba(255,255,255,.28)}
+.ic.gold{background:rgba(255,214,107,.22);color:#ffd66b}
+.ic.on{background:#ffd66b;color:#20244d}
+.spacer{flex:1}
+#info{font-size:15px;font-weight:800;color:#ffd66b;white-space:nowrap}
+#levels{display:flex;gap:6px}
+#ltrWrap{font-size:13px;opacity:.85;display:flex;align-items:center;gap:5px;cursor:pointer}
+#target{width:96px;padding:7px 10px;border-radius:10px;border:2px solid #ffd66b;
+  background:#141a3f;color:#ffd66b;font-size:20px;font-weight:900;text-align:center}
+.tgt{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:800}
+.expr{flex:1;min-width:200px;font-size:clamp(18px,2.4vw,30px);font-weight:900;letter-spacing:1px;
+  padding:2px 12px;white-space:nowrap;overflow:hidden}
+#exprVal{color:#7ef7b0}
+#exprVal.bad{color:#ff9aa2}
+
+/* ===== 보드 ===== */
+#boardWrap{flex:1;display:grid;place-items:center;padding:10px;min-height:0}
+#board{display:grid;gap:8px}
+.hcell{width:var(--cs);height:var(--cs);display:grid;place-items:center;
+  font-size:calc(var(--fs)*.66);font-weight:900;color:#ffd66b;opacity:.8}
+.card{width:var(--cs);height:var(--cs);perspective:700px;cursor:pointer}
+.card .inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+  transition:transform .42s cubic-bezier(.4,1.4,.5,1)}
+.card.open .inner{transform:rotateY(180deg)}
+.f{position:absolute;inset:0;display:grid;place-items:center;border-radius:14px;
+  backface-visibility:hidden;font-size:var(--fs);font-weight:900}
+.front{transform:rotateY(180deg)}
+.kid .back{background:linear-gradient(160deg,#3646b8,#1b2264);color:rgba(255,255,255,.85);
+  border:2px solid rgba(255,255,255,.18);box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.kid .front{background:linear-gradient(160deg,#fff8e6,#ffe6a8);color:#20244d;
+  border:2px solid #ffd66b;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.ad .back{background:linear-gradient(160deg,#ffd66b,#f0b23c);color:#3a2a06;
+  border:2px solid rgba(255,255,255,.5);box-shadow:0 6px 16px rgba(0,0,0,.35);
+  font-size:calc(var(--fs)*.5)}
+.ad .front{background:linear-gradient(160deg,#1d2a72,#131a45);color:#fff;
+  border:2px solid rgba(255,214,107,.5)}
+.ad .front.op{color:#ffd66b;background:linear-gradient(160deg,#3b1f5e,#22103a);border-color:#ffd66b}
+.card.done{animation:pop .4s;cursor:default}
+.kid .card.done .front{
+  background:linear-gradient(160deg,#7ef7b0,#22c07a);
+  border:3px solid #d9ffe9;
+  box-shadow:0 0 26px rgba(126,247,176,.65),inset 0 0 20px rgba(255,255,255,.35)}
+.card.done .front::after{
+  content:'✓';position:absolute;top:4px;right:8px;
+  font-size:calc(var(--fs)*.34);color:#0b5f38;opacity:.85}
+.card.used .front{outline:3px solid #7ef7b0;outline-offset:-3px}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
+.card:not(.open):not(.done):hover .inner{transform:translateY(-4px)}
+.card.done .inner{transform:rotateY(180deg)!important}
+
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);
+  background:rgba(0,0,0,.8);border:1px solid rgba(255,214,107,.5);color:#ffd66b;
+  padding:10px 20px;border-radius:999px;font-size:17px;font-weight:800;
+  opacity:0;transition:.2s;pointer-events:none;z-index:60}
+#toast.show{opacity:1;bottom:40px}
+i.conf{position:fixed;width:9px;height:14px;border-radius:2px;pointer-events:none;z-index:90}
+#hintBox{position:fixed;inset:0;z-index:100;display:grid;place-items:center;
+  background:rgba(4,7,26,.86);cursor:pointer;animation:hIn .25s}
+@keyframes hIn{from{opacity:0}to{opacity:1}}
+#hintBox .box{background:linear-gradient(160deg,#1c2666,#0d1struct234);
+  background:linear-gradient(160deg,#1c2666,#0d1234);
+  border:4px solid #ffd66b;border-radius:28px;padding:40px 70px;text-align:center;
+  box-shadow:0 30px 90px rgba(0,0,0,.8),0 0 60px rgba(255,214,107,.35)}
+#hintBox .ttl{font-size:clamp(24px,3vw,38px);font-weight:900;color:#fff;opacity:.9;
+  margin-bottom:18px;letter-spacing:2px}
+#hintBox .ans{font-size:clamp(46px,8vw,110px);font-weight:900;color:#ffd66b;
+  letter-spacing:4px;line-height:1.25;text-shadow:0 0 40px rgba(255,214,107,.7)}
+#hintBox small{display:block;margin-top:24px;font-size:16px;opacity:.6;font-weight:600;color:#fff}
+
+/* ===== 후킹 효과 ===== */
+@keyframes shake{
+  0%,100%{transform:translate(0,0) rotate(0)}
+  15%{transform:translate(-11px,6px) rotate(-1.2deg)}
+  30%{transform:translate(10px,-7px) rotate(1.2deg)}
+  45%{transform:translate(-9px,-5px) rotate(-.9deg)}
+  60%{transform:translate(8px,7px) rotate(.9deg)}
+  80%{transform:translate(-5px,3px) rotate(-.4deg)}
+}
+body.shake{animation:shake .55s}
+body.shakeBig{animation:shake .9s}
+
+/* 정답 카드 금빛 폭발 */
+@keyframes hit{
+  0%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,214,107,.9)}
+  40%{transform:scale(1.22) rotate(3deg);box-shadow:0 0 40px 18px rgba(255,214,107,.75)}
+  100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,214,107,0)}
+}
+.card.hit .inner{animation:hit .7s;border-radius:14px}
+
+/* 오답 붉은 진동 */
+@keyframes wrong{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-9px)}40%{transform:translateX(9px)}
+  60%{transform:translateX(-6px)}80%{transform:translateX(6px)}
+}
+.card.wrong .inner{animation:wrong .45s;box-shadow:0 0 26px 8px rgba(255,90,110,.7)}
+
+/* 화면 전체 플래시 */
+#flash{position:fixed;inset:0;pointer-events:none;z-index:85;opacity:0;
+  background:radial-gradient(circle at 50% 45%,rgba(255,214,107,.55),transparent 62%)}
+#flash.go{animation:fl .5s}
+@keyframes fl{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+
+/* 승리 배너 */
+#banner{position:fixed;left:50%;top:44%;transform:translate(-50%,-50%) scale(.4);z-index:95;
+  font-size:clamp(38px,7vw,90px);font-weight:900;color:#ffd66b;text-align:center;
+  text-shadow:0 0 30px rgba(255,214,107,.8),0 8px 30px rgba(0,0,0,.7);
+  opacity:0;pointer-events:none;white-space:nowrap}
+#banner.go{animation:bn 2.4s}
+@keyframes bn{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-8deg)}
+  18%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(2deg)}
+  28%{transform:translate(-50%,-50%) scale(1) rotate(0)}
+  80%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.1)}
+}
+
+</style>
+</head>
+<body>
+
+<div id="pick">
+  <h1>🧠 깜짝 두뇌게임</h1>
+  <p>어떤 모드로 진행할까요?</p>
+  <div class="modes">
+    <button class="mode" onclick="startMode('kid')">
+      <span class="emo">🧒</span><b>유치부 친구들</b>
+      <small>모양 기억 짝 맞추기<br>3×3 · 4×4 · 5×5</small>
+    </button>
+    <button class="mode" onclick="startMode('adult')">
+      <span class="emo">🧑‍🤝‍🧑</span><b>부모님들</b>
+      <small>좌표 부르기 · 사칙연산 숫자 사냥<br>5×5 · 6×6 · 7×7</small>
+    </button>
+  </div>
+</div>
+
+<div id="bar" hidden>
+  <button class="ic" onclick="backHome()">↩︎ 모드</button>
+  <div id="levels"></div>
+  <div id="info"></div>
+  <div class="spacer"></div>
+  <label id="ltrWrap" hidden><input type="checkbox" id="ltr" checked onchange="onLtr()">순서대로 계산</label>
+  <button class="ic" id="peekBtn" onclick="togglePeek()">👀 전체 뒤집기</button>
+  <button class="ic" onclick="resetBoard()">↺ 이 판 다시</button>
+  <button class="ic gold" onclick="askNew()">🎲 판 새로 섞기</button>
+</div>
+
+<div id="mathbar" hidden>
+  <div class="tgt">🎯 목표
+    <input id="target" type="number" oninput="onTarget()" placeholder="35">
+    <button class="ic" onclick="randTarget()">랜덤 목표</button>
+  </div>
+  <div class="expr"><span id="exprTxt">숫자 → 기호 → 숫자 순서로 좌표를 불러주세요</span> <b id="exprVal"></b></div>
+  <button class="ic" onclick="undoExpr()">← 취소</button>
+  <button class="ic" onclick="clearExpr()">식 비우기</button>
+  <button class="ic gold" onclick="hint()">💡 힌트</button>
+</div>
+
+<div id="boardWrap" hidden><div id="board"></div></div>
+<div id="flash"></div>
+<div id="banner"></div>
+<div id="toast"></div>
+
+<script>
+const SHAPES=['🍎','🐶','🚗','🌸','🐟','🎈','🍌','🐰','🦋','🍓','🐻','🚌','🌈','🐤','🍦','⚽'];
+const OPS=['+','−','×','÷'];
+const S={mode:null,size:0,cards:[],els:[],peek:false,first:-1,lock:false,
+         matched:0,pairs:0,tries:0,expr:[],target:null,ltr:true};
+
+function startMode(m){
+  S.mode=m;
+  document.getElementById('pick').hidden=true;
+  document.getElementById('bar').hidden=false;
+  document.getElementById('boardWrap').hidden=false;
+  document.getElementById('mathbar').hidden=(m!=='adult');
+  document.getElementById('ltrWrap').hidden=(m!=='adult');
+  const lv=(m==='kid')?[3,4,5]:[5,6,7];
+  document.getElementById('levels').innerHTML=
+    lv.map(n=>`<button class="ic" data-n="${n}" onclick="setLevel(${n})">${n}×${n}</button>`).join('');
+  setLevel(lv[0]);
+}
+function backHome(){
+  document.getElementById('pick').hidden=false;
+  ['bar','mathbar','boardWrap'].forEach(id=>document.getElementById(id).hidden=true);
+}
+function setLevel(n){
+  S.size=n;
+  document.querySelectorAll('#levels .ic').forEach(b=>b.classList.toggle('on',+b.dataset.n===n));
+  newGame();
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function newGame(){
+  const n=S.size,total=n*n;
+  S.peek=false;S.first=-1;S.lock=false;S.matched=0;S.tries=0;S.expr=[];S.target=null;
+  document.getElementById('peekBtn').classList.remove('on');
+  if(S.mode==='adult')document.getElementById('target').value='';
+
+  if(S.mode==='kid'){
+    S.pairs=Math.floor(total/2);
+    const pool=shuffle(SHAPES.slice()).slice(0,S.pairs);
+    let faces=[];pool.forEach(s=>{faces.push(s);faces.push(s)});
+    if(total%2)faces.push('🎁');
+    S.cards=shuffle(faces).map(f=>({t:'shape',v:f,open:false,done:false}));
+  }else{
+    const each=n===5?2:(n===6?3:4);
+    const maxN=n===5?12:(n===6?15:20);
+    let faces=[];
+    OPS.forEach(o=>{for(let k=0;k<each;k++)faces.push({t:'op',v:o})});
+    while(faces.length<total)faces.push({t:'num',v:1+(Math.random()*maxN|0)});
+    S.cards=shuffle(faces).map(c=>({...c,open:false,done:false}));
+  }
+  build();
+}
+function askNew(){
+  if(confirm('카드 위치를 전부 새로 섞습니다.\n(같은 판을 다시 하려면 「이 판 다시」를 눌러주세요)\n\n새로 섞을까요?'))newGame();
+}
+
+function resetBoard(){
+  S.peek=false;S.first=-1;S.lock=false;S.matched=0;S.tries=0;S.expr=[];
+  document.getElementById('peekBtn').classList.remove('on');
+  S.cards.forEach(c=>{c.open=false;c.done=false});
+  paint();toast('↺ 같은 판을 다시 덮었어요 (위치 그대로)');
+}
+function build(){
+  const n=S.size,b=document.getElementById('board');
+  b.className=(S.mode==='kid')?'kid':'ad';
+  b.innerHTML='';S.els=[];
+  const cols=(S.mode==='adult')?n+1:n;
+  b.style.gridTemplateColumns=`repeat(${cols},var(--cs))`;
+  if(S.mode==='adult'){
+    b.appendChild(hcell(''));
+    for(let c=1;c<=n;c++)b.appendChild(hcell(c));
+  }
+  for(let r=0;r<n;r++){
+    if(S.mode==='adult')b.appendChild(hcell(r+1));
+    for(let c=0;c<n;c++){
+      const i=r*n+c,card=S.cards[i];
+      const el=document.createElement('div');
+      el.className='card';
+      const backTxt=(S.mode==='kid')?(i+1):`${r+1}-${c+1}`;
+      const isOp=card.t==='op';
+      el.innerHTML=`<div class="inner">
+        <div class="f back">${backTxt}</div>
+        <div class="f front${isOp?' op':''}">${card.v}</div></div>`;
+      el.onclick=()=>tap(i);
+      b.appendChild(el);S.els[i]=el;
+    }
+  }
+  fit();paint();
+  if(S._noticed)toast('🎲 새로 섞었어요 (위치 전부 변경)');
+  S._noticed=true;
+}
+function hcell(t)
+{const d=document.createElement('div');d.className='hcell';d.textContent=t;return d}
+function fit(){
+  const n=S.size,cols=(S.mode==='adult')?n+1:n,gap=8;
+  const w=document.getElementById('boardWrap');
+  const cs=Math.floor(Math.min((w.clientWidth-24-(cols-1)*gap)/cols,
+                               (w.clientHeight-24-(cols-1)*gap)/cols));
+  document.documentElement.style.setProperty('--cs',cs+'px');
+  document.documentElement.style.setProperty('--fs',Math.floor(cs*0.46)+'px');
+}
+addEventListener('resize',()=>{if(S.size)fit()});
+
+function paint(){
+  S.cards.forEach((c,i)=>{
+    const el=S.els[i];if(!el)return;
+    el.classList.toggle('open',S.peek||c.open);
+    el.classList.toggle('done',c.done);
+    el.classList.toggle('used',S.mode==='adult'&&S.expr.some(e=>e.i===i));
+  });
+  const info=document.getElementById('info');
+  if(S.mode==='kid'){
+    info.textContent=`짝 ${S.matched} / ${S.pairs}   ·   시도 ${S.tries}회`;
+  }else{
+    const open=S.cards.filter(c=>c.open).length;
+    info.textContent=`열린 카드 ${open} / ${S.cards.length}`;
+    paintExpr();
+  }
+}
+function tap(i){
+  if(S.peek){toast('전체 뒤집기를 먼저 끄세요');return}
+  const c=S.cards[i];
+  if(S.mode==='kid'){
+    if(S.lock||c.open||c.done)return;
+    c.open=true;paint();flip();
+    if(c.v==='🎁'){
+      c.done=true;paint();toast('🎁 행운 카드! 보너스 점수!');
+      burstAt(i,120);mark(i,'hit');flash();shake(true);drum();good();banner('🎁 보너스!');
+      return;
+    }
+    if(S.first<0){S.first=i;return}
+    const a=S.cards[S.first],fi=S.first;S.tries++;
+    if(a.v===c.v){
+      a.done=c.done=true;S.first=-1;S.matched++;paint();
+      good();mark(i,'hit');mark(fi,'hit');
+      burstAt(i,90);shake();flash();drum();
+      if(S.matched===S.pairs)setTimeout(win,500);
+    }else{
+      S.lock=true;bad();paint();mark(i,'wrong');mark(fi,'wrong');
+      const flipBack=()=>{
+        if(!S.lock)return;
+        clearTimeout(S._t);document.removeEventListener('click',flipBack);
+        a.open=false;c.open=false;S.first=-1;S.lock=false;paint();
+      };
+      S._t=setTimeout(flipBack,1800);
+      setTimeout(()=>document.addEventListener('click',flipBack),400);
+    }
+  }else{
+    if(!c.open){c.open=true;beep(700,.06)}
+    push(i);paint();
+  }
+}
+function push(i){
+  const c=S.cards[i];
+  if(S.expr.some(e=>e.i===i)){toast('이미 사용한 카드예요');return}
+  const wantNum=S.expr.length%2===0;
+  if(wantNum&&c.t!=='num'){toast('숫자 카드를 먼저 골라주세요');return}
+  if(!wantNum&&c.t!=='op'){toast('연산 기호를 골라주세요');return}
+  S.expr.push({i,t:c.t,v:c.v});
+  const v=calc(S.expr.map(e=>e.v));
+  if(v!==null&&S.target!==null&&Math.abs(v-S.target)<1e-9){
+    S.expr.forEach(e=>mark(e.i,'hit'));
+    shake();flash();drum();
+    setTimeout(win,350);
+  }
+}
+function undoExpr(){S.expr.pop();paint()}
+function clearExpr(){S.expr=[];paint()}
+function onLtr(){S.ltr=document.getElementById('ltr').checked;paint()}
+function onTarget(){const v=document.getElementById('target').value;S.target=v===''?null:+v;paint()}
+function randTarget(){
+  const t=makeTarget();
+  if(t===null){toast('목표를 만들 수 없어요. 새 게임을 눌러보세요');return}
+  document.getElementById('target').value=t;S.target=t;
+  S.expr=[];paint();toast('🎯 목표 숫자 '+t);
+}
+function paintExpr(){
+  const txt=document.getElementById('exprTxt'),val=document.getElementById('exprVal');
+  if(!S.expr.length){txt.textContent='숫자 → 기호 → 숫자 순서로 좌표를 불러주세요';val.textContent='';val.className='';return}
+  txt.textContent=S.expr.map(e=>e.v).join(' ');
+  const v=calc(S.expr.map(e=>e.v));
+  if(v===null){val.textContent='= ?';val.className='';return}
+  val.textContent='= '+(Number.isInteger(v)?v:Math.round(v*100)/100);
+  val.className=(S.target!==null&&Math.abs(v-S.target)>1e-9)?'bad':'';
+}
+function ap(a,o,b){
+  if(o==='+')return a+b;if(o==='−')return a-b;if(o==='×')return a*b;
+  return b===0?null:a/b;
+}
+function calc(t){
+  if(!t.length||t.length%2===0)return null;
+  if(S.ltr){let v=t[0];for(let i=1;i<t.length;i+=2){v=ap(v,t[i],t[i+1]);if(v===null)return null}return v}
+  let nums=[t[0]],ops=[];
+  for(let i=1;i<t.length;i+=2){const o=t[i],b=t[i+1];
+    if(o==='×'||o==='÷'){const r=ap(nums[nums.length-1],o,b);if(r===null)return null;nums[nums.length-1]=r}
+    else{ops.push(o);nums.push(b)}}
+  let v=nums[0];for(let i=0;i<ops.length;i++){v=ap(v,ops[i],nums[i+1]);if(v===null)return null}
+  return v;
+}
+function makeTarget(){
+  const nums=[],ops=[];
+  S.cards.forEach((c,i)=>{(c.t==='num'?nums:ops).push({i,v:c.v})});
+  for(let k=0;k<500;k++){
+    const len=Math.random()<.55?2:3;
+    const pn=shuffle(nums.slice()).slice(0,len),po=shuffle(ops.slice()).slice(0,len-1);
+    if(pn.length<len||po.length<len-1)continue;
+    const tk=[pn[0].v];for(let j=0;j<len-1;j++)tk.push(po[j].v,pn[j+1].v);
+    const v=calc(tk);
+    if(v!==null&&Number.isInteger(v)&&v>0&&v<=999)return v;
+  }
+  return null;
+}
+function hint(){
+  if(S.target===null){toast('먼저 목표 숫자를 넣어주세요');return}
+  const sol=solve(S.target);
+  if(!sol){toast('이 판에서는 정답을 못 찾았어요');return}
+  const n=S.size;
+  const co=sol.map(i=>{const c=S.cards[i];
+    return c.t==='num'?`(${(i/n|0)+1}-${i%n+1})`:c.v}).join(' ');
+  document.getElementById('hintBox')?.remove();
+  const box=document.createElement('div');box.id='hintBox';
+  box.innerHTML=`<div class="box"><div class="ttl">💡 정답 예시</div>
+    <div class="ans">${co}</div>
+    <small>화면을 클릭하면 닫힙니다</small></div>`;
+  box.onclick=()=>box.remove();document.body.appendChild(box);
+  drum();flash();
+  setTimeout(()=>{document.getElementById('hintBox')?.remove()},9000);
+}
+function solve(target){
+  const nums=[],opMap={};
+  S.cards.forEach((c,i)=>{if(c.t==='num')nums.push({i,v:c.v});
+    else{(opMap[c.v]=opMap[c.v]||[]).push(i)}});
+  const okeys=Object.keys(opMap),N=shuffle(nums.slice());
+  for(const a of N)for(const b of N){if(a.i===b.i)continue;
+    for(const o of okeys){if(calc([a.v,o,b.v])===target)return [a.i,opMap[o][0],b.i]}}
+  for(const a of N)for(const b of N){if(a.i===b.i)continue;
+    for(const c of N){if(c.i===a.i||c.i===b.i)continue;
+      for(const o1 of okeys)for(const o2 of okeys){
+        if(o1===o2&&opMap[o1].length<2)continue;
+        if(calc([a.v,o1,b.v,o2,c.v])===target)
+          return [a.i,opMap[o1][0],b.i,o1===o2?opMap[o2][1]:opMap[o2][0],c.i];
+      }}}
+  return null;
+}
+function togglePeek(){
+  S.peek=!S.peek;
+  document.getElementById('peekBtn').classList.toggle('on',S.peek);
+  paint();flash();drum();
+  toast(S.peek?'👀 전체 공개! 잘 기억하세요':'다시 뒤집었습니다');
+}
+function win(){
+  const r=document.getElementById('board').getBoundingClientRect();
+  burst(r.left+r.width/2,r.top+r.height/2,220);
+  fanfare();shake(true);flash();
+  banner(S.mode==='kid'?'🎉 다 맞췄어요!':'🎉 정 답 !');
+  for(let k=1;k<=6;k++)setTimeout(()=>{
+    burst(innerWidth*(.12+Math.random()*.76),innerHeight*(.2+Math.random()*.4),110);
+    if(k%2===0)flash();
+  },k*280);
+  setTimeout(()=>shake(true),900);
+  toast(S.mode==='kid'?'🎉 다 맞췄어요! 최고!':'🎉 정답입니다!');
+}
+function burstAt(i,n){const r=S.els[i].getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,n)}
+function burst(x,y,n){
+  for(let k=0;k<n;k++){
+    const d=document.createElement('i');d.className='conf';
+    d.style.left=x+'px';d.style.top=y+'px';
+    d.style.background=`hsl(${Math.random()*360},92%,64%)`;
+    document.body.appendChild(d);
+    const a=Math.random()*Math.PI*2,s=100+Math.random()*300;
+    d.animate([{transform:'translate(0,0) rotate(0)',opacity:1},
+      {transform:`translate(${Math.cos(a)*s}px,${Math.sin(a)*s+220}px) rotate(${Math.random()*900}deg)`,opacity:0}],
+      {duration:900+Math.random()*700,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>d.remove();
+  }
+}
+let AC;function beep(f,d,type){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type||'triangle';o.frequency.value=f;
+  g.gain.setValueAtTime(.18,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);
+  o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
+function flip(){beep(520,.05,'sine');setTimeout(()=>beep(880,.05,'sine'),40)}
+function good(){[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>beep(f,.16),i*70))}
+function bad(){beep(220,.14,'sawtooth');setTimeout(()=>beep(150,.22,'square'),120)}
+function fanfare(){
+  const m=[[523,0],[659,120],[784,240],[1046,360],[784,520],[1046,620],[1318,720],[1568,860]];
+  m.forEach(([f,t])=>setTimeout(()=>{beep(f,.3);beep(f/2,.3,'sine')},t));
+  setTimeout(()=>{[1046,1318,1568,2093].forEach((f,i)=>setTimeout(()=>beep(f,.5),i*60))},1150);
+}
+function drum(){[90,70,55].forEach((f,i)=>setTimeout(()=>beep(f,.22,'square'),i*55))}
+function shake(big){
+  document.body.classList.remove('shake','shakeBig');
+  void document.body.offsetWidth;
+  document.body.classList.add(big?'shakeBig':'shake');
+  setTimeout(()=>document.body.classList.remove('shake','shakeBig'),big?900:550);
+}
+function flash(){
+  const f=document.getElementById('flash');
+  f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
+}
+function banner(t){
+  const b=document.getElementById('banner');
+  b.textContent=t;b.classList.remove('go');void b.offsetWidth;b.classList.add('go');
+}
+function mark(i,cls){
+  const el=S.els[i];if(!el)return;
+  el.classList.remove('hit','wrong');void el.offsetWidth;el.classList.add(cls);
+  setTimeout(()=>el.classList.remove('hit','wrong'),800);
+}
+let tT;function toast(m){const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');clearTimeout(tT);
+  tT=setTimeout(()=>t.classList.remove('show'),1800)}
+
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(e.code==='Space'){e.preventDefault();if(S.size)togglePeek()}
+  if(e.key==='r'||e.key==='R'){if(S.size)resetBoard()}
+  if(e.key==='n'||e.key==='N'){if(S.size)askNew()}
+  if(e.key==='Escape')backHome();
+});
+</script>
+</body>
+</html>
