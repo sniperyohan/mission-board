@@ -169,7 +169,6 @@ body.shakeBig{animation:shake .9s}
   80%{opacity:1;transform:translate(-50%,-50%) scale(1)}
   100%{opacity:0;transform:translate(-50%,-50%) scale(1.1)}
 }
-
 </style>
 </head>
 <body>
@@ -191,6 +190,7 @@ body.shakeBig{animation:shake .9s}
 
 <div id="bar" hidden>
   <button class="ic" onclick="backHome()">↩︎ 모드</button>
+  <button class="ic" id="thBtn" onclick="toggleTheme()">🌙 다크</button>
   <div id="levels"></div>
   <div id="info"></div>
   <div class="spacer"></div>
@@ -538,6 +538,15 @@ addEventListener('keydown',e=>{
   if(e.key==='n'||e.key==='N'){if(S.size)askNew()}
   if(e.key==='Escape')backHome();
 });
+function toggleTheme(){setTheme(!document.body.classList.contains('soft'))}
+function setTheme(soft){
+  document.body.classList.toggle('soft',soft);
+  const b=document.getElementById('thBtn');
+  if(b)b.textContent=soft?'☀️ 밝게':'🌙 다크';
+  try{localStorage.setItem('brainTheme',soft?'soft':'dark')}catch(e){}
+}
+setTheme(localStorage.getItem('brainTheme')==='soft');
+
 </script>
 </body>
 </html>
