@@ -277,8 +277,11 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
     #board .tile{min-height:0 !important;aspect-ratio:1/1;padding:2px !important;
       border-radius:8px !important;overflow:hidden}
     #board .tile img{width:74% !important;height:auto !important;margin:0 auto}
-    #board .name,#board .cname{font-size:8px !important;line-height:1.1 !important;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #board .tile{font-size:8px !important;line-height:1.15 !important}
+    #board .tile div{font-size:8px !important;line-height:1.15 !important;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    #board .tile.start,#board .tile.goal{font-size:7px !important}
+    #board .tile.start div,#board .tile.goal div{font-size:15px !important}
     #board .tile .num{font-size:7px !important}
     header h1{font-size:17px !important}
     header .sub,#sub{font-size:11px !important}
