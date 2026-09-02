@@ -214,7 +214,7 @@ body.shakeBig{animation:shake .9s}
 const SHAPES=['🍎','🐶','🚗','🌸','🐟','🎈','🍌','🐰','🦋','🍓','🐻','🚌','🌈','🐤','🍦','⚽'];
 const OPS=['+','−','×','÷'];
 const S={mode:null,size:0,cards:[],els:[],peek:false,first:-1,lock:false,
-         matched:0,pairs:0,tries:0,expr:[],target:null,ltr:true};
+         matched:0,pairs:0,tries:0,miss:0,expr:[],target:null,ltr:true};
 
 function startMode(m){
   S.mode=m;
@@ -241,7 +241,7 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;
 
 function newGame(){
   const n=S.size,total=n*n;
-  S.peek=false;S.first=-1;S.lock=false;S.matched=0;S.tries=0;S.expr=[];S.target=null;
+  S.peek=false;S.first=-1;S.lock=false;S.matched=0;S.tries=0;S.miss=0;S.expr=[];S.target=null;
   document.getElementById('peekBtn').classList.remove('on');
   if(S.mode==='adult')document.getElementById('target').value='';
 
@@ -266,7 +266,7 @@ function askNew(){
 }
 
 function resetBoard(){
-  S.peek=false;S.first=-1;S.lock=false;S.matched=0;S.tries=0;S.expr=[];
+  S.peek=false;S.first=-1;S.lock=false;S.matched=0;S.tries=0;S.miss=0;S.expr=[];
   document.getElementById('peekBtn').classList.remove('on');
   S.cards.forEach(c=>{c.open=false;c.done=false});
   paint();toast('↺ 같은 판을 다시 덮었어요 (위치 그대로)');
@@ -323,8 +323,8 @@ function paint(){
   if(S.mode==='kid'){
     info.textContent=`짝 ${S.matched} / ${S.pairs}   ·   시도 ${S.tries}회`;
   }else{
-    const open=S.cards.filter(c=>c.open).length;
-    info.textContent=`열린 카드 ${open} / ${S.cards.length}`;
+    const step=S.expr.length%2===0?'숫자':'기호';
+    info.textContent=`다음은 ${step} 차례   ·   ❌ 실패 ${S.miss}회`;
     paintExpr();
   }
 }
@@ -357,26 +357,31 @@ function tap(i){
       setTimeout(()=>document.addEventListener('click',flipBack),400);
     }
   }else{
-    if(!c.open){c.open=true;beep(700,.06)}
-    push(i);paint();
+    if(S.lock)return;
+    if(c.open||S.expr.some(e=>e.i===i)){toast('이미 열린 카드예요');return}
+    c.open=true;beep(700,.06);paint();
+    const wantNum=S.expr.length%2===0;
+    if((wantNum&&c.t!=='num')||(!wantNum&&c.t!=='op')){
+      S.lock=true;S.miss++;bad();
+      toast(wantNum?'❌ 숫자가 나와야 했어요! 실패':'❌ 연산 기호가 나와야 했어요! 실패');
+      setTimeout(failClose,1100);
+      return;
+    }
+    S.expr.push({i,t:c.t,v:c.v});paint();
+    const v=calc(S.expr.map(e=>e.v));
+    if(v!==null&&S.target!==null&&Math.abs(v-S.target)<1e-9){
+      S.expr.forEach(e=>mark(e.i,'hit'));
+      shake();flash();drum();
+      setTimeout(win,350);
+    }
   }
 }
-function push(i){
-  const c=S.cards[i];
-  if(S.expr.some(e=>e.i===i)){toast('이미 사용한 카드예요');return}
-  const wantNum=S.expr.length%2===0;
-  if(wantNum&&c.t!=='num'){toast('숫자 카드를 먼저 골라주세요');return}
-  if(!wantNum&&c.t!=='op'){toast('연산 기호를 골라주세요');return}
-  S.expr.push({i,t:c.t,v:c.v});
-  const v=calc(S.expr.map(e=>e.v));
-  if(v!==null&&S.target!==null&&Math.abs(v-S.target)<1e-9){
-    S.expr.forEach(e=>mark(e.i,'hit'));
-    shake();flash();drum();
-    setTimeout(win,350);
-  }
+function failClose(){
+  S.cards.forEach(c=>{if(!c.done)c.open=false});
+  S.expr=[];S.lock=false;paint();
 }
-function undoExpr(){S.expr.pop();paint()}
-function clearExpr(){S.expr=[];paint()}
+function undoExpr(){const e=S.expr.pop();if(e)S.cards[e.i].open=false;paint()}
+function clearExpr(){S.expr.forEach(e=>S.cards[e.i].open=false);S.expr=[];paint()}
 function onLtr(){S.ltr=document.getElementById('ltr').checked;paint()}
 function onTarget(){const v=document.getElementById('target').value;S.target=v===''?null:+v;paint()}
 function randTarget(){
