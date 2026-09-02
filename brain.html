@@ -10,7 +10,12 @@
 body{margin:0;height:100vh;overflow:hidden;color:#fff;
   font-family:'Pretendard','Malgun Gothic',-apple-system,sans-serif;
   background:radial-gradient(1100px 620px at 50% -12%,#1c2666,#0a0f2a 62%);
-  display:flex;flex-direction:column}
+  display:grid;grid-template-columns:1fr 300px;grid-template-rows:auto 1fr;
+  grid-template-areas:"board bar" "board math"}
+#pick{grid-column:1/-1;grid-row:1/-1}
+#boardWrap{grid-area:board}
+#bar{grid-area:bar}
+#mathbar{grid-area:math}
 
 /* ===== 모드 선택 ===== */
 #pick{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
@@ -26,11 +31,22 @@ body{margin:0;height:100vh;overflow:hidden;color:#fff;
 .mode small{opacity:.7;font-size:13px;line-height:1.5;text-align:center}
 
 /* ===== 상단 바 ===== */
-#bar,#mathbar{display:flex;align-items:center;gap:8px;padding:8px 12px;flex-wrap:wrap}
-#bar{border-bottom:1px solid rgba(255,255,255,.10)}
-#mathbar{background:rgba(255,214,107,.08);border-bottom:1px solid rgba(255,214,107,.18)}
-.ic{border:none;border-radius:10px;padding:7px 14px;font-size:14px;font-weight:800;cursor:pointer;
-  background:rgba(255,255,255,.14);color:#fff;white-space:nowrap}
+#bar,#mathbar{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:14px}
+#bar{border-left:1px solid rgba(255,255,255,.12)}
+#mathbar{background:rgba(255,214,107,.08);border-left:1px solid rgba(255,214,107,.20);
+  border-top:1px solid rgba(255,214,107,.20)}
+.ic{border:none;border-radius:12px;padding:12px 14px;font-size:17px;font-weight:800;cursor:pointer;
+  background:rgba(255,255,255,.14);color:#fff;white-space:nowrap;width:100%}
+.spacer{display:none}
+#levels{display:flex;gap:8px}
+#levels .ic{padding:12px 0;font-size:18px}
+#info{font-size:16px;text-align:center;padding:9px;border-radius:10px;
+  background:rgba(255,214,107,.10);white-space:normal}
+#ltrWrap{font-size:15px;justify-content:center;padding:4px 0}
+.tgt{flex-direction:column;align-items:stretch;gap:8px;font-size:16px}
+#target{width:100%;font-size:28px;padding:10px}
+.expr{min-width:0;flex:none;font-size:21px;text-align:center;padding:12px 10px;
+  border-radius:10px;background:rgba(0,0,0,.25);white-space:normal;word-break:break-all}
 .ic:hover{background:rgba(255,255,255,.28)}
 .ic.gold{background:rgba(255,214,107,.22);color:#ffd66b}
 .ic.on{background:#ffd66b;color:#20244d}
