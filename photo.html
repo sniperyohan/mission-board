@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📸 사진첩 맞추기</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#050914;font-family:'Pretendard','Malgun Gothic',sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+#photoCnt{font-size:clamp(15px,1.6vw,22px);color:#9fc4ff;font-weight:800}
+#photoImg{max-width:88vw;max-height:64vh;border-radius:24px;border:6px solid #ffd66b;
+  box-shadow:0 0 60px rgba(255,190,60,.35);object-fit:contain}
+#photoName{font-size:clamp(30px,5vw,80px);font-weight:900;color:#6f86b8;
+  transition:transform .3s,opacity .3s,color .3s;letter-spacing:2px}
+#photoName.flip{transform:scale(1.35);opacity:.15}
+#photoName.on{color:#ffd66b;text-shadow:0 0 30px rgba(255,190,60,.8);animation:namePop .45s ease}
+@keyframes namePop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}
+#photoBtns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+#photoBtns button{border:none;border-radius:14px;padding:14px 28px;
+  font-size:clamp(15px,1.5vw,22px);font-weight:900;cursor:pointer;
+  background:rgba(255,255,255,.16);color:#fff}
+#photoBtns button.pri{background:linear-gradient(160deg,#ffd66b,#ff9f1c);color:#4a2800}
+#photoBtns button:hover{filter:brightness(1.15)}
+#bgmWrap{position:fixed;top:14px;right:18px;z-index:99999;display:flex;gap:8px;align-items:center}
+#bgmBtn{font-size:17px;font-weight:800;padding:9px 16px;border-radius:12px;cursor:pointer;
+  background:rgba(0,0,0,.45);color:#e8eefc;border:2px solid rgba(255,255,255,.35);transition:all .18s}
+#bgmBtn.on{background:linear-gradient(160deg,#ffd66b,#ff9f1c);color:#4a2800;border-color:#ffd66b}
+#bgmVol{width:88px;accent-color:#ff9f1c;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="photoCnt">1 / 8</div>
+<img id="photoImg" alt="사진">
+<div id="photoName">???</div>
+<div id="photoBtns">
+  <button class="pri" id="photoRev" onclick="revealPhoto()">정답 공개</button>
+  <button onclick="nextPhoto()">건너뛰기</button>
+  <button onclick="prevPhoto()">◀ 이전</button>
+</div>
+
+<audio id="bgm" src="music/bgm.mp3" loop preload="auto"></audio>
+<div id="bgmWrap">
+  <button id="bgmBtn" onclick="toggleBgm()">▶ 음악</button>
+  <input id="bgmVol" type="range" min="0" max="100" value="35" oninput="setBgmVol(this.value)">
+</div>
+
+<script>
+const PHOTOS=[
+  {f:"도하아빠.png",            n:"도하 아빠"},
+  {f:"박지연지휘자선생님.jpg",  n:"박지연 지휘자 선생님"},
+  {f:"서하엄마.jpg",            n:"서하 엄마"},
+  {f:"승준이엄마.jpg",          n:"승준이 엄마"},
+  {f:"연우엄마.jpg",            n:"연우 엄마"},
+  {f:"이영미전도사님.jpg",      n:"이영미 전도사님"},
+  {f:"이정은반주자선생님.jpg",  n:"이정은 반주자 선생님"},
+  {f:"지온이엄마.jpg",          n:"지온이 엄마"}
+];
+
+PHOTOS.forEach(p=>{const i=new Image();i.src="photos/"+encodeURIComponent(p.f)});
+let pOrder=PHOTOS.map((_,i)=>i), pIdx=0, pShown=false;
+
+function drawPhoto(){
+  const p=PHOTOS[pOrder[pIdx]]; pShown=false;
+  document.getElementById('photoImg').src="photos/"+encodeURIComponent(p.f);
+  const nm=document.getElementById('photoName');
+  nm.className=''; nm.textContent='???';
+  document.getElementById('photoCnt').textContent=(pIdx+1)+" / "+pOrder.length;
+  document.getElementById('photoRev').textContent='정답 공개';
+}
+function revealPhoto(){
+  if(pShown){nextPhoto();return}
+  const nm=document.getElementById('photoName');
+  nm.classList.add('flip');
+  setTimeout(function(){
+    nm.classList.remove('flip');
+    nm.textContent=PHOTOS[pOrder[pIdx]].n;
+    nm.classList.add('on');
+  },380);
+  pShown=true;
+  document.getElementById('photoRev').textContent='다음 사진 ▶';
+}
+function nextPhoto(){
+  if(pIdx>=pOrder.length-1){pIdx=0}else{pIdx++}
+  drawPhoto();
+}
+function prevPhoto(){
+  if(pIdx<=0){pIdx=pOrder.length-1}else{pIdx--}
+  drawPhoto();
+}
+document.addEventListener('keydown',function(e){
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();revealPhoto()}
+  if(e.key==='ArrowRight'){e.preventDefault();nextPhoto()}
+  if(e.key==='ArrowLeft'){e.preventDefault();prevPhoto()}
+  if(e.key==='Escape')window.close();
+});
+drawPhoto();
+
+const bgm=document.getElementById('bgm'), bgmBtn=document.getElementById('bgmBtn');
+bgm.volume=0.35; bgm.loop=true;
+function toggleBgm(){
+  if(bgm.paused){
+    bgm.play().then(function(){bgmBtn.textContent='⏸ 일시정지';bgmBtn.classList.add('on')})
+              .catch(function(){alert('music/bgm.mp3 확인!')});
+  }else{
+    bgm.pause(); bgmBtn.textContent='▶ 음악'; bgmBtn.classList.remove('on');
+  }
+}
+function setBgmVol(v){bgm.volume=v/100}
+bgm.addEventListener('ended',function(){bgm.currentTime=0;bgm.play()});
+</script>
+</body>
+</html>
