@@ -331,6 +331,14 @@ h1{font-size:clamp(18px,2.4vw,32px);letter-spacing:2px;text-shadow:0 0 18px #6ea
 #photoBtns button.pri{background:linear-gradient(160deg,#ffd66b,#ff9f1c);color:#4a2800}
 #photoBtns button:hover{filter:brightness(1.15)}
 
+/* ===== 배경음악 버튼 ===== */
+#bgmWrap{position:fixed;top:14px;right:18px;z-index:99999;display:flex;gap:8px;align-items:center}
+#bgmBtn{font-size:17px;font-weight:800;padding:9px 16px;border-radius:12px;cursor:pointer;background:rgba(0,0,0,.45);color:#e8eefc;border:2px solid rgba(255,255,255,.35);transition:all .18s}
+#bgmBtn:hover{background:rgba(0,0,0,.65)}
+#bgmBtn.on{background:linear-gradient(160deg,#ffd66b,#ff9f1c);color:#4a2800;border-color:#ffd66b;box-shadow:0 0 16px rgba(255,159,28,.55)}
+#bgmVol{width:88px;accent-color:#ff9f1c;cursor:pointer}
+@media (max-width:700px){#bgmVol{display:none}#bgmBtn{font-size:14px;padding:7px 12px}}
+
   </style>
 
 </head>
@@ -862,6 +870,35 @@ document.addEventListener('keydown',e=>{
     <button onclick="closePhoto()">✕ 닫기</button>
   </div>
 </div>
+
+<!-- ===== 배경음악 ===== -->
+<audio id="bgm" src="music/bgm.mp3" loop preload="auto"></audio>
+<div id="bgmWrap">
+  <button id="bgmBtn" onclick="toggleBgm()">▶ 음악</button>
+  <input id="bgmVol" type="range" min="0" max="100" value="35" oninput="setBgmVol(this.value)">
+</div>
+<script>
+  const bgm = document.getElementById('bgm');
+  const bgmBtn = document.getElementById('bgmBtn');
+  bgm.volume = 0.35;
+  bgm.loop = true;
+  function toggleBgm(){
+    if (bgm.paused){
+      bgm.play().then(function(){
+        bgmBtn.textContent = '⏸ 일시정지';
+        bgmBtn.classList.add('on');
+      }).catch(function(){
+        alert('음악 파일을 못 찾았어요. music/bgm.mp3 확인!');
+      });
+    } else {
+      bgm.pause();
+      bgmBtn.textContent = '▶ 음악';
+      bgmBtn.classList.remove('on');
+    }
+  }
+  function setBgmVol(v){ bgm.volume = v/100; }
+  bgm.addEventListener('ended', function(){ bgm.currentTime = 0; bgm.play(); });
+</script>
 
 </body>
 </html>
